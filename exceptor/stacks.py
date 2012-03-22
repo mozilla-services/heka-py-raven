@@ -1,5 +1,5 @@
 """
-raven.utils.stacks
+exceptor.stacks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :copyright: (c) 2010 by the Sentry Team, see AUTHORS for more details.
@@ -10,7 +10,7 @@ import inspect
 import re
 import sys
 
-from raven.utils.encoding import transform
+from exceptor.encoding import transform
 
 _coding_re = re.compile(r'coding[:=]\s*([-\w.]+)')
 
