@@ -1,4 +1,3 @@
-
 def varmap(func, var, context=None, name=None):
     """
     Executes ``func(key_name, value)`` on all values
