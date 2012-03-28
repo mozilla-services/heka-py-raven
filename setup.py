@@ -16,7 +16,7 @@ setup(name='metlog-raven',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+          'raven'
       ],
       entry_points="""
       # -*- Entry points: -*-
