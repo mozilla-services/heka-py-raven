@@ -1,5 +1,8 @@
 from exceptor.decorators import capture_stack
+from exceptor.decorators import metlog_exceptor
+from metlog.client import MetlogClient
 from metlog.decorators.base import CLIENT_WRAPPER
+from mock import Mock
 from nose.tools import eq_
 import json
 
@@ -51,3 +54,32 @@ class TestCannedDecorators(DecoratorTestBase):
 
     def test_capture_stack_passing(self):
         eq_(25, clean_exception_call(5, 5))
+
+class TestClientMethod(object):
+    logger = 'tests'
+
+    def setUp(self):
+        self.mock_sender = Mock()
+        self.client = MetlogClient(self.mock_sender, self.logger)
+        self.client.add_method('exceptor', metlog_exceptor)
+
+    def test_add_exceptor(self):
+
+        def exception_call2(a, b, c):
+            return a + b + c / (a-b)
+
+        def exception_call1(x, y):
+            return exception_call2(y, x, 42)
+
+        try:
+            exception_call1(5, 5)
+        except:
+            self.client.exceptor('some_logger_name', 'Caught an error')
+
+        eq_(1, len(self.client.sender.method_calls))
+
+        msg = self.client.sender.method_calls[0][1][0]
+        assert msg['fields']['culprit'] == 'test_metlog.exception_call2'
+        assert len(msg['fields']['frames']) == 3
+        assert msg['logger'] == 'some_logger_name'
+        assert msg['type'] == 'stacktrace'
