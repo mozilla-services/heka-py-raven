@@ -1,8 +1,9 @@
 # Code to reconstruct the frame as a JSON serializable 
-from exceptor.stacks import get_culprit, get_stack_info
-from exceptor.utils import varmap
-from exceptor.stacks import iter_traceback_frames
-from exceptor.encoding import shorten
+from raven.utils import varmap
+from raven.utils.encoding import shorten
+from raven.utils.stacks import get_culprit
+from raven.utils.stacks import get_stack_info
+from raven.utils.stacks import iter_traceback_frames
 
 import sys
 

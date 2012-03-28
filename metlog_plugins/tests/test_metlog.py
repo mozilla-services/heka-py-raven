@@ -1,7 +1,7 @@
-from exceptor.decorators import capture_stack
-from exceptor.decorators import metlog_exceptor
 from metlog.client import MetlogClient
 from metlog.decorators.base import CLIENT_WRAPPER
+from metlog_plugins.raven_plugin import capture_stack
+from metlog_plugins.raven_plugin import metlog_exceptor
 from mock import Mock
 from nose.tools import eq_
 import json
