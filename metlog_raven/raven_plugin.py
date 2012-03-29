@@ -1,3 +1,10 @@
+# ***** BEGIN LICENSE BLOCK *****
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+# ***** END LICENSE BLOCK *****
+
 # Code to reconstruct the frame as a JSON serializable 
 from raven.utils import varmap
 from raven.utils.encoding import shorten
@@ -42,27 +49,36 @@ class capture_stack(MetlogDecorator):
             # have a chance to do the right thing
             raise
 
-def metlog_exceptor(self, logger, msg,
-        str_length=200,
-        list_length=50,
-        exc_info=None):
-    if exc_info is None:
-        exc_info = sys.exc_info()
+def config_plugin(config):
 
-    exc_type, exc_value, exc_traceback = exc_info
+    default_str_length = config.pop('str_length', 200)
+    default_list_length = config.pop('list_length', 50)
+    default_logger = config.pop('logger', None)
+    default_msg = config.pop('msg', None)
 
-    frames = varmap(lambda k, v: shorten(v,
-        string_length=str_length,
-        list_length=list_length),
-        get_stack_info(iter_traceback_frames(exc_traceback)))
+    def metlog_exceptor(self, logger=default_str_length, msg=default_msg,
+            str_length=default_str_length,
+            list_length=default_list_length,
+            exc_info=None):
+        if exc_info is None:
+            exc_info = sys.exc_info()
 
-    culprit = get_culprit(frames)
+        exc_type, exc_value, exc_traceback = exc_info
 
-    metlog_blob = {'culprit': culprit,
-            'frames': frames}
+        frames = varmap(lambda k, v: shorten(v,
+            string_length=str_length,
+            list_length=list_length),
+            get_stack_info(iter_traceback_frames(exc_traceback)))
 
-    self.metlog(type='stacktrace',
-            logger=logger,
-            fields=metlog_blob)
+        culprit = get_culprit(frames)
+
+        metlog_blob = {'culprit': culprit,
+                'frames': frames}
+
+        self.metlog(type='stacktrace',
+                logger=logger,
+                fields=metlog_blob)
+
+    return metlog_exceptor
 
 

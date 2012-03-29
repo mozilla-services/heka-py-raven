@@ -1,7 +1,13 @@
+# ***** BEGIN LICENSE BLOCK *****
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+# ***** END LICENSE BLOCK *****
+
 from metlog.client import MetlogClient
 from metlog.decorators.base import CLIENT_WRAPPER
-from metlog_plugins.raven_plugin import capture_stack
-from metlog_plugins.raven_plugin import metlog_exceptor
+from metlog_raven.raven_plugin import capture_stack
 from mock import Mock
 from nose.tools import eq_
 import json
@@ -55,31 +61,34 @@ class TestCannedDecorators(DecoratorTestBase):
     def test_capture_stack_passing(self):
         eq_(25, clean_exception_call(5, 5))
 
-class TestClientMethod(object):
-    logger = 'tests'
+def test_plugins_config():
+    cfg_txt = """
+    [metlog]
+    sender_class = metlog.senders.DebugCaptureSender
 
-    def setUp(self):
-        self.mock_sender = Mock()
-        self.client = MetlogClient(self.mock_sender, self.logger)
-        self.client.add_method('exceptor', metlog_exceptor)
+    [metlog_plugin_raven]
+    net=True
+    """
+    from metlog.config import client_from_text_config
+    import json
 
-    def test_add_exceptor(self):
+    client = client_from_text_config(cfg_txt, 'metlog')
 
-        def exception_call2(a, b, c):
-            return a + b + c / (a-b)
+    def exception_call2(a, b, c):
+        return a + b + c / (a-b)
 
-        def exception_call1(x, y):
-            return exception_call2(y, x, 42)
+    def exception_call1(x, y):
+        return exception_call2(y, x, 42)
 
-        try:
-            exception_call1(5, 5)
-        except:
-            self.client.exceptor('some_logger_name', 'Caught an error')
+    try:
+        exception_call1(5, 5)
+    except:
+        client.raven('some_logger_name', 'Caught an error')
 
-        eq_(1, len(self.client.sender.method_calls))
+    eq_(1, len(client.sender.msgs))
 
-        msg = self.client.sender.method_calls[0][1][0]
-        assert msg['fields']['culprit'] == 'test_metlog.exception_call2'
-        assert len(msg['fields']['frames']) == 3
-        assert msg['logger'] == 'some_logger_name'
-        assert msg['type'] == 'stacktrace'
+    msg = json.loads(client.sender.msgs[0])
+    assert msg['fields']['culprit'] == 'test_metlog.exception_call2'
+    assert len(msg['fields']['frames']) == 3
+    assert msg['logger'] == 'some_logger_name'
+    assert msg['type'] == 'stacktrace'
