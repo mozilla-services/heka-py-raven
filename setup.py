@@ -37,6 +37,5 @@ setup(name='metlog-raven',
           'raven'
       ],
       entry_points={
-          'metlog.plugin': ['raven=metlog_raven.raven_plugin:config_plugin'],
           }
       )
