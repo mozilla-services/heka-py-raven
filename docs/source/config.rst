@@ -25,7 +25,7 @@ options if you choose.
                    by the logger. Default is 50 frames.
     * logger: The name that metlog will use when logging messages. By
               default this string is empty
-    * msg: The default message that will be sent with each stacktrace.
+    * payload: The default message that will be sent with each stacktrace.
            By default this string is empty
     * severity: The default severity of the error.  Default is 3 as
       defined by `metlog.client:SEVERITY.ERROR` 

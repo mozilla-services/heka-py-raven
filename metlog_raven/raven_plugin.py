@@ -19,12 +19,34 @@ from metlog.decorators.base import CLIENT_WRAPPER
 from metlog.client import SEVERITY
 
 class capture_stack(MetlogDecorator):
+    """
+    This decorator provides the ability to catch exceptions, log
+    stacktrace data to the metlog backend. After logging, the
+    exception will be re-raised.  It is *still* the responsibility of
+    callers to handle exceptions properly.
+
+    :param str_length: This is the maximum length of each traceback string.
+                  Default is 200 characters
+    :param list_length: The number of stack frames which will be captured
+                   by the logger. Default is 50 frames.
+    :param payload: The default message that will be sent with each stacktrace.
+           By default this string is empty
+    :param severity: The default severity of the error.  Default is 3 as
+      defined by `metlog.client:SEVERITY.ERROR` 
+      <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py>
+
+    The logger name will automatically be set the the fully qualified
+    name of the decorated function.
+
+    """
+
     def metlog_call(self, *args, **kwargs):
         if self.kwargs is None:
             self.kwargs = {}
         str_length = self.kwargs.pop('str_length', 200)
         list_length = self.kwargs.pop('list_length', 50)
         severity = self.kwargs.pop('severity', SEVERITY.ERROR)
+        payload = self.kwargs.pop('payload', None)
 
         try:
             result = self._fn(*args, **kwargs)
@@ -46,6 +68,7 @@ class capture_stack(MetlogDecorator):
             CLIENT_WRAPPER.client.metlog('stacktrace',
                     logger=self._fn_fq_name,
                     severity=severity,
+                    payload=payload,
                     fields=metlog_blob)
 
             # re-raise the exception so that callers up the call stack
@@ -63,7 +86,7 @@ def config_plugin(config):
                    by the logger. Default is 50 frames.
     :param logger: The name that metlog will use when logging messages. By
                     default this string is empty
-    :param msg: The default message that will be sent with each stacktrace.
+    :param payload: The default message that will be sent with each stacktrace.
            By default this string is empty
     :param severity: The default severity of the error.  Default is 3 as
       defined by `metlog.client:SEVERITY.ERROR` 
@@ -74,10 +97,11 @@ def config_plugin(config):
     default_str_length = config.pop('str_length', 200)
     default_list_length = config.pop('list_length', 50)
     default_logger = config.pop('logger', None)
-    default_msg = config.pop('msg', None)
+    default_payload= config.pop('payload', None)
     default_severity = config.pop('severity', SEVERITY.ERROR)
 
-    def metlog_exceptor(self, logger=default_str_length, msg=default_msg,
+    def metlog_exceptor(self, logger=default_str_length,
+            payload=default_payload,
             str_length=default_str_length,
             list_length=default_list_length,
             severity=default_severity,
@@ -99,7 +123,7 @@ def config_plugin(config):
 
         self.metlog(type='stacktrace',
                 logger=logger,
-                payload=msg,
+                payload=payload,
                 severity=severity,
                 fields=metlog_blob)
 

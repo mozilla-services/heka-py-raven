@@ -11,8 +11,8 @@ Welcome to Metlog-raven's documentation!
 .. toctree::
    :glob:
 
-   api/*
    *
+   api/*
 
 
 Indices and tables
