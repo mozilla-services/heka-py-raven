@@ -6,6 +6,7 @@
 # ***** END LICENSE BLOCK *****
 
 from metlog.client import MetlogClient
+from metlog.client import SEVERITY
 from metlog.decorators.base import CLIENT_WRAPPER
 from metlog_raven.raven_plugin import capture_stack
 from mock import Mock
@@ -58,6 +59,8 @@ class TestCannedDecorators(DecoratorTestBase):
             culprit_frame['vars']['b'],
             5)
 
+        eq_(event['severity'], SEVERITY.ERROR)
+
     def test_capture_stack_passing(self):
         eq_(25, clean_exception_call(5, 5))
 
@@ -68,7 +71,6 @@ def test_plugins_config():
 
     [metlog_plugin_raven]
     provider=metlog_raven.raven_plugin:config_plugin
-    net=True
     """
     from metlog.config import client_from_text_config
     import json
@@ -93,3 +95,4 @@ def test_plugins_config():
     assert len(msg['fields']['frames']) == 3
     assert msg['logger'] == 'some_logger_name'
     assert msg['type'] == 'stacktrace'
+    assert msg['severity'] == SEVERITY.ERROR

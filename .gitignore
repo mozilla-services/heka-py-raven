@@ -10,3 +10,4 @@
 *.swp
 pip-log.txt
 .DS_Store
+docs/build
