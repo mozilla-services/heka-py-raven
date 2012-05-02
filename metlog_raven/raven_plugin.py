@@ -13,11 +13,15 @@ import sys
 from metlog.decorators.base import MetlogDecorator
 from metlog.holder import get_client
 from metlog.client import SEVERITY
+import time
 
 
 class RavenClient(Client):
     def send(self, **data):
-        """ Sends messages into metlog """
+        """
+        Just record the zlib/b64 encoded message so that we can
+        use it later
+        """
         self._metlog_msg = self.encode(data)
 
 
@@ -54,6 +58,7 @@ class capture_stack(MetlogDecorator):
             get_client('metlog.sentry').metlog(type='sentry',
                     logger=self._fn_fq_name,
                     payload=payload,
+                    fields={'epoch_timestamp': time.time()},
                     severity=severity)
 
             # re-raise the exception so that callers up the call stack
@@ -90,12 +95,16 @@ def config_plugin(config):
         if exc_info is None:
             exc_info = sys.exc_info()
 
+        # TODO: this isnt' threadsafe
+        # the capture and the extraction of the metlog_msg can
+        # be caught in a race with 2 threads
         rc.captureException(exc_info)
         payload = rc._metlog_msg
 
         self.metlog(type='sentry',
                 logger=logger,
                 payload=payload,
+                fields={'epoch_timestamp': time.time()},
                 severity=severity)
 
     return metlog_exceptor
