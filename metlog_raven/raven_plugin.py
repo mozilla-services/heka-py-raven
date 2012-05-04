@@ -17,12 +17,68 @@ import time
 
 
 class RavenClient(Client):
-    def send(self, **data):
+    """
+    Customized raven client that doesn't actuall send anything
+    """
+    def capture(self, event_type, data=None, date=None, time_spent=None,
+                extra=None, stack=None, **kwargs):
         """
-        Just record the zlib/b64 encoded message so that we can
-        use it later
+        Captures and processes an event and pipes it off to SentryClient.send.
+
+        To use structured data (interfaces) with capture:
+
+        >>> capture('Message', message='foo', data={
+        >>>     'sentry.interfaces.Http': {
+        >>>         'url': '...',
+        >>>         'data': {},
+        >>>         'query_string': '...',
+        >>>         'method': 'POST',
+        >>>     },
+        >>>     'logger': 'logger.name',
+        >>>     'site': 'site.name',
+        >>> }, extra={
+        >>>     'key': 'value',
+        >>> })
+
+        The finalized ``data`` structure contains the following (some optional)
+        builtin values:
+
+        >>> {
+        >>>     # the culprit and version information
+        >>>     'culprit': 'full.module.name', # or /arbitrary/path
+        >>>
+        >>>     # all detectable installed modules
+        >>>     'modules': {
+        >>>         'full.module.name': 'version string',
+        >>>     },
+        >>>
+        >>>     # arbitrary data provided by user
+        >>>     'extra': {
+        >>>         'key': 'value',
+        >>>     }
+        >>> }
+
+        :param event_type: the module path to the Event class. Builtins can use
+                           shorthand class notation and exclude the full module
+                           path.
+        :param data: the data base, useful for specifying structured data
+                           interfaces. Any key which contains a '.' will be
+                           assumed to be a data interface.
+        :param date: the datetime of this event
+        :param time_spent: a float value representing the duration of the event
+        :param event_id: a 32-length unique string identifying this event
+        :param extra: a dictionary of additional standard metadata
+        :param culprit: a string representing the cause of this event
+                        (generally a path to a function)
+        :return: a 32-length string identifying this event
         """
-        self._metlog_msg = self.encode(data)
+
+        data = self.build_msg(event_type, data, date, time_spent,
+                extra, stack, **kwargs)
+
+        message = self.encode(data)
+
+        return message
 
 
 class capture_stack(MetlogDecorator):
@@ -52,8 +108,7 @@ class capture_stack(MetlogDecorator):
         except:
 
             rc = RavenClient()
-            rc.captureException(sys.exc_info())
-            payload = rc._metlog_msg
+            payload = rc.captureException(sys.exc_info())
 
             get_client('metlog.sentry').metlog(type='sentry',
                     logger=self._fn_fq_name,
@@ -98,8 +153,7 @@ def config_plugin(config):
         # TODO: this isnt' threadsafe
         # the capture and the extraction of the metlog_msg can
         # be caught in a race with 2 threads
-        rc.captureException(exc_info)
-        payload = rc._metlog_msg
+        payload = rc.captureException(exc_info)
 
         self.metlog(type='sentry',
                 logger=logger,
