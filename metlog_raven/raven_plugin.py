@@ -11,7 +11,6 @@ from raven import Client
 import sys
 
 from metlog.decorators.base import MetlogDecorator
-from metlog.holder import get_client
 from metlog.client import SEVERITY
 import time
 
@@ -112,7 +111,7 @@ class capture_stack(MetlogDecorator):
             rc = RavenClient()
             payload = rc.captureException(sys.exc_info())
 
-            get_client('metlog.sentry').metlog(type='sentry',
+            self.client.metlog(type='sentry',
                     logger=self._fn_fq_name,
                     payload=payload,
                     fields={'epoch_timestamp': time.time()},

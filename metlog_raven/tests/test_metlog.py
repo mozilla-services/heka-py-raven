@@ -7,43 +7,47 @@
 
 from metlog.client import SEVERITY
 from metlog.holder import CLIENT_HOLDER
-from metlog.holder import get_client
 from metlog_raven.raven_plugin import RavenClient
 from metlog_raven.raven_plugin import capture_stack
+from metlog.config import client_from_dict_config
 from nose.tools import eq_
 import json
 
 
-def exception_call2(a, b, c):
-    return a + b + c / (a - b)
-
-
-@capture_stack
-def exception_call1(x, y):
-    return exception_call2(y, x, 42)
-
-
-@capture_stack
-def clean_exception_call(x, y):
-    return x * y
-
-
 class DecoratorTestBase(object):
-    def setUp(self):
-        self.orig_client = get_client('test', \
-                {'sender_class': 'metlog.senders.DebugCaptureSender'})
+    client_name = '_decorator_test'
 
-        # Clobber the sentry plugin
-        CLIENT_HOLDER._clients['metlog.sentry'] = self.orig_client
+    def setUp(self):
+        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
+        client = CLIENT_HOLDER.get_client(self.client_name)
+        client_config = {
+            'sender_class': 'metlog.senders.DebugCaptureSender',
+            }
+        self.client = client_from_dict_config(client_config, client)
+        CLIENT_HOLDER.set_default_client_name(self.client_name)
+
+    def tearDown(self):
+        del CLIENT_HOLDER._clients[self.client_name]
+        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
 
 class TestCannedDecorators(DecoratorTestBase):
     def test_capture_stack(self):
+
+        ###
+        def exception_call2(a, b, c):
+            return a + b + c / (a - b)
+
+        @capture_stack
+        def exception_call1(x, y):
+            return exception_call2(y, x, 42)
+        ###
+
         msgs = []
         try:
             exception_call1(5, 5)
         except:
-            msgs = [json.loads(m) for m in self.orig_client.sender.msgs]
+            msgs = [json.loads(m) for m in self.client.sender.msgs]
 
         # There should be 1 exception
         eq_(len(msgs), 1)
@@ -67,6 +71,11 @@ class TestCannedDecorators(DecoratorTestBase):
         eq_(event['severity'], SEVERITY.ERROR)
 
     def test_capture_stack_passing(self):
+
+        @capture_stack
+        def clean_exception_call(x, y):
+            return x * y
+
         eq_(25, clean_exception_call(5, 5))
 
 
