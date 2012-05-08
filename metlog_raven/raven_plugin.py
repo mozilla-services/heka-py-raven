@@ -18,7 +18,8 @@ import time
 
 class RavenClient(Client):
     """
-    Customized raven client that doesn't actuall send anything
+    Customized raven client that does not actually send data to a
+    server, but encodes the data into something metlog can use
     """
     def capture(self, event_type, data=None, date=None, time_spent=None,
                 extra=None, stack=None, **kwargs):
@@ -78,6 +79,7 @@ class RavenClient(Client):
 
         message = self.encode(data)
 
+        # The standard raven client normally sends data out here
         return message
 
 
@@ -126,14 +128,8 @@ def config_plugin(config):
     Configure the metlog plugin prior to binding it to the
     metlog client.
 
-    :param str_length: This is the maximum length of each traceback string.
-                  Default is 200 characters
-    :param list_length: The number of stack frames which will be captured
-                   by the logger. Default is 50 frames.
     :param logger: The name that metlog will use when logging messages. By
                     default this string is empty
-    :param payload: The default message that will be sent with each stacktrace.
-           By default this string is empty
     :param severity: The default severity of the error.  Default is 3 as
       defined by `metlog.client:SEVERITY.ERROR`
       <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py> # NOQA
