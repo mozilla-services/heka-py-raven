@@ -78,7 +78,6 @@ class TestCannedDecorators(DecoratorTestBase):
 
         eq_(25, clean_exception_call(5, 5))
 
-
 def test_plugins_config():
     cfg_txt = """
     [metlog]
@@ -115,3 +114,32 @@ def test_plugins_config():
     eq_(msg['logger'], 'some_logger_name')
     eq_(msg['type'], 'sentry')
     eq_(msg['severity'], SEVERITY.ERROR)
+
+def test_simple_client_use():
+    cfg_txt = """
+    [metlog]
+    sender_class = metlog.senders.DebugCaptureSender
+
+    [metlog_plugin_raven]
+    provider=metlog_raven.raven_plugin:config_plugin
+    """
+    from metlog.config import client_from_text_config
+    import json
+
+    client = client_from_text_config(cfg_txt, 'metlog')
+
+    msgs = [json.loads(m) for m in client.sender.msgs]
+    assert len(msgs) == 0
+
+    try:
+        5/0
+    except:
+        try:
+            client.raven()
+        except:
+            raise AssertionError()
+
+    msgs = [json.loads(m) for m in client.sender.msgs]
+    assert len(msgs) == 1
+
+

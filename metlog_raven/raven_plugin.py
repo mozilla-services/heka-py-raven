@@ -145,9 +145,10 @@ def config_plugin(config):
         if exc_info is None:
             exc_info = sys.exc_info()
 
-        # TODO: this isnt' threadsafe
-        # the capture and the extraction of the metlog_msg can
-        # be caught in a race with 2 threads
+        if exc_info == (None, None, None):
+            # There is no exception
+            return
+
         payload = rc.captureException(exc_info)
 
         self.metlog(type='sentry',

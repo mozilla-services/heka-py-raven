@@ -28,7 +28,23 @@ options if you choose.
 Usage
 =====
 
-Logging exceptions is passive.   The raven plugin will never catch an
+Obtaining a client can be done in multiple ways, please refer to the
+metlog documentation for complete details.
+
+That said, if you are impatient you can obtain a client using
+`get_client`.  ::
+
+    from metlog.holder import get_client
+
+Logging exceptions is passive.   The raven plugin will not rethrow an
+exception automatically if you invoke the method on the client
+directly.  This prevents you from seeing exceptions raised from within
+the plugin code.
+
+If you use the decorator syntax, the plugin will automatically rethrow
+the exception for you.  
+
+never catch an
 exception without rethrowing it.  The plugin simply captures the
 exception information passes it on to the metlog server.
 
@@ -46,7 +62,6 @@ will log network details. ::
         get_client('some_client_name').raven()
         raise
 
-
 or you can use the decorator syntax ::
 
     from metlog_raven.raven_plugin import capture_stack
@@ -55,9 +70,8 @@ or you can use the decorator syntax ::
     def some_function(foo, bar):
         # Some code here that throws exceptions
 
-
 When the decorator syntax is used, exceptions with stack information
-are based to the metlog backend.
+are passed to the logstash backend.
 
 Data structure
 ==============
