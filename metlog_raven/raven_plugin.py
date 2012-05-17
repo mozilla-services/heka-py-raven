@@ -139,8 +139,18 @@ def config_plugin(config):
     default_severity = config.pop('severity', SEVERITY.ERROR)
     rc = RavenClient()
 
-    def metlog_exceptor(self, logger=default_logger, severity=default_severity,
-                exc_info=None):
+    def metlog_raven(self, msg='', logger=default_logger,
+            severity=default_severity, exc_info=None):
+        """
+        :param msg: optional string you wish to attach to the error
+        :param logger: optional logger you would like to use instead
+                       of the default logger.  You almost certainly do
+                       not want to override this.
+        :param severity: The severity level of the message.  Default
+                         is already set to ERROR
+        :param exc_info: Optional exception info.  If nothing is
+                         provided, sys.exc_info() will be used.
+        """
 
         if exc_info is None:
             exc_info = sys.exc_info()
@@ -149,12 +159,12 @@ def config_plugin(config):
             # There is no exception
             return
 
-        payload = rc.captureException(exc_info)
+        payload = rc.captureException(exc_info, extra={'msg': msg})
 
         self.metlog(type='sentry',
                 logger=logger,
                 payload=payload,
-                fields={'epoch_timestamp': time.time()},
+                fields={'epoch_timestamp': time.time(), 'msg': msg},
                 severity=severity)
 
-    return metlog_exceptor
+    return metlog_raven
