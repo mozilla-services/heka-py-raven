@@ -33,7 +33,7 @@ setup(name='metlog-raven',
       zip_safe=False,
       install_requires=[
           'metlog-py',
-          'raven=1.7.6b'
+          'raven=1.8.0'
       ],
       entry_points={
           }

@@ -78,6 +78,7 @@ class TestCannedDecorators(DecoratorTestBase):
 
         eq_(25, clean_exception_call(5, 5))
 
+
 def test_plugins_config():
     cfg_txt = """
     [metlog]
@@ -100,7 +101,7 @@ def test_plugins_config():
     try:
         exception_call1(5, 5)
     except:
-        client.raven('some_logger_name')
+        client.raven('some message')
 
     eq_(1, len(client.sender.msgs))
 
@@ -110,10 +111,13 @@ def test_plugins_config():
     sentry_fields = rc.decode(msg['payload'])
     eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
     eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
+    eq_(sentry_fields['extra']['msg'], 'some message')
 
-    eq_(msg['logger'], 'some_logger_name')
+    eq_(msg['logger'], '')
+    eq_(msg['fields']['msg'], 'some message')
     eq_(msg['type'], 'sentry')
     eq_(msg['severity'], SEVERITY.ERROR)
+
 
 def test_simple_client_use():
     cfg_txt = """
@@ -122,6 +126,10 @@ def test_simple_client_use():
 
     [metlog_plugin_raven]
     provider=metlog_raven.raven_plugin:config_plugin
+
+    [metlog_plugin_error]
+    provider=metlog_raven.raven_plugin:config_plugin
+    override=True
     """
     from metlog.config import client_from_text_config
     import json
@@ -132,7 +140,7 @@ def test_simple_client_use():
     assert len(msgs) == 0
 
     try:
-        5/0
+        5 / 0
     except:
         try:
             client.raven()
@@ -142,4 +150,17 @@ def test_simple_client_use():
     msgs = [json.loads(m) for m in client.sender.msgs]
     assert len(msgs) == 1
 
+    client.sender.msgs.clear()
+    msgs = [json.loads(m) for m in client.sender.msgs]
+    assert len(msgs) == 0
 
+    try:
+        5 / 0
+    except:
+        try:
+            client.error()
+        except:
+            raise AssertionError()
+
+    msgs = [json.loads(m) for m in client.sender.msgs]
+    assert len(msgs) == 1
