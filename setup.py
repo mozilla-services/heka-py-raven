@@ -14,13 +14,12 @@
 #
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
-import sys, os
 
 version = '0.1'
 
 setup(name='metlog-raven',
       version=version,
-      description="Adapter for the Raven Sentry client to play nice with Metlog",
+      description="A Metlog plugin to send exceptions to Sentry",
       classifiers=[
           'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
           ],
@@ -34,7 +33,7 @@ setup(name='metlog-raven',
       zip_safe=False,
       install_requires=[
           'metlog-py',
-          'raven'
+          'raven>=1.9'
       ],
       entry_points={
           }
