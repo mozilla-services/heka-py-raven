@@ -11,14 +11,14 @@ from raven import Client
 import sys
 
 from metlog.decorators.base import MetlogDecorator
-from metlog.holder import get_client
 from metlog.client import SEVERITY
 import time
 
 
 class RavenClient(Client):
     """
-    Customized raven client that doesn't actuall send anything
+    Customized raven client that does not actually send data to a
+    server, but encodes the data into something metlog can use
     """
     def capture(self, event_type, data=None, date=None, time_spent=None,
                 extra=None, stack=None, **kwargs):
@@ -78,6 +78,7 @@ class RavenClient(Client):
 
         message = self.encode(data)
 
+        # The standard raven client normally sends data out here
         return message
 
 
@@ -110,7 +111,7 @@ class capture_stack(MetlogDecorator):
             rc = RavenClient()
             payload = rc.captureException(sys.exc_info())
 
-            get_client('metlog.sentry').metlog(type='sentry',
+            self.client.metlog(type='sentry',
                     logger=self._fn_fq_name,
                     payload=payload,
                     fields={'epoch_timestamp': time.time()},
@@ -126,14 +127,8 @@ def config_plugin(config):
     Configure the metlog plugin prior to binding it to the
     metlog client.
 
-    :param str_length: This is the maximum length of each traceback string.
-                  Default is 200 characters
-    :param list_length: The number of stack frames which will be captured
-                   by the logger. Default is 50 frames.
     :param logger: The name that metlog will use when logging messages. By
                     default this string is empty
-    :param payload: The default message that will be sent with each stacktrace.
-           By default this string is empty
     :param severity: The default severity of the error.  Default is 3 as
       defined by `metlog.client:SEVERITY.ERROR`
       <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py> # NOQA
@@ -144,21 +139,32 @@ def config_plugin(config):
     default_severity = config.pop('severity', SEVERITY.ERROR)
     rc = RavenClient()
 
-    def metlog_exceptor(self, logger=default_logger, severity=default_severity,
-                exc_info=None):
+    def metlog_raven(self, msg='', logger=default_logger,
+            severity=default_severity, exc_info=None):
+        """
+        :param msg: optional string you wish to attach to the error
+        :param logger: optional logger you would like to use instead
+                       of the default logger.  You almost certainly do
+                       not want to override this.
+        :param severity: The severity level of the message.  Default
+                         is already set to ERROR
+        :param exc_info: Optional exception info.  If nothing is
+                         provided, sys.exc_info() will be used.
+        """
 
         if exc_info is None:
             exc_info = sys.exc_info()
 
-        # TODO: this isnt' threadsafe
-        # the capture and the extraction of the metlog_msg can
-        # be caught in a race with 2 threads
-        payload = rc.captureException(exc_info)
+        if exc_info == (None, None, None):
+            # There is no exception
+            return
+
+        payload = rc.captureException(exc_info, extra={'msg': msg})
 
         self.metlog(type='sentry',
                 logger=logger,
                 payload=payload,
-                fields={'epoch_timestamp': time.time()},
+                fields={'epoch_timestamp': time.time(), 'msg': msg},
                 severity=severity)
 
-    return metlog_exceptor
+    return metlog_raven
