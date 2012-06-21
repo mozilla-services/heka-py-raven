@@ -16,7 +16,7 @@ Metlog server. ::
     provider=metlog_raven.raven_plugin:config_plugin
 
 Alternatively, if loading Metlog's configuration by means of a
-dict, the plugin can be loaded in the example that follows,
+`dict`, the plugin can be loaded with the example `dict` that follows,
 which will also bind the method `raven` to the Metlog client. ::
 
     {
@@ -89,6 +89,7 @@ will log catcha n exception and fire it off to details. ::
 
 or you can use the decorator syntax ::
 
+    from metlog.holder import get_client
     from metlog_raven.raven_plugin import capture_stack
 
     metlog = get_client('some_client_name', 
