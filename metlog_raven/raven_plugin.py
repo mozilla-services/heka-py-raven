@@ -76,6 +76,10 @@ class RavenClient(Client):
         data = self.build_msg(event_type, data, date, time_spent,
                 extra, stack, **kwargs)
 
+        # raven adds a 'public_key' field which breaks sentry for some
+        # reason
+        del data['public_key']
+
         message = self.encode(data)
 
         # The standard raven client normally sends data out here
@@ -107,10 +111,25 @@ class capture_stack(MetlogDecorator):
             result = self._fn(*args, **kwargs)
             return result
         except:
+            """
+            TODO: we need a standardized way of resolving the name
+            that a plugin is registered at within the metlog client
+            We can access the client via self._client, but we really
+            need something like:
+
+                plugin_fn = self._client[this_plugin_name]
+                plugin_fn(logger=self._fn_fq_name, severity=severity)
+
+            This is needed because right now - the duplication in code
+            means that we are not capturing the sentry project id #.
+
+            That id # is only available in the configuration options.
+
+            Plus, it's just cleaner.
+            """
 
             rc = RavenClient()
             payload = rc.captureException(sys.exc_info())
-
             self.client.metlog(type='sentry',
                     logger=self._fn_fq_name,
                     payload=payload,
@@ -137,7 +156,9 @@ def config_plugin(config):
 
     default_logger = config.pop('logger', None)
     default_severity = config.pop('severity', SEVERITY.ERROR)
-    rc = RavenClient()
+    sentry_project_id = config["sentry_project_id"]
+
+    rc = RavenClient(project=sentry_project_id)
 
     def metlog_raven(self, msg='', logger=default_logger,
             severity=default_severity, exc_info=None):
