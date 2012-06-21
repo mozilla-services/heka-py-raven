@@ -46,7 +46,11 @@ That said, if you are impatient you can obtain a client using
 `get_client`.  We strongly suggest you do not do this though. ::
 
     from metlog.holder import get_client
-    get_client('myapp', {'sender_class': 'metlog.senders.StdOutSender', 'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}})
+    get_client('myapp',
+            {
+             'sender_class': 'metlog.senders.StdOutSender',
+             'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+            })
 
 Note that the above sender configuration will only route messages to
 stdout so that you can verify that logging is happening during
