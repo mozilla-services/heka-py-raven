@@ -15,6 +15,17 @@ Metlog server. ::
     [metlog_plugin_raven]
     provider=metlog_raven.raven_plugin:config_plugin
 
+Alternatively, if loading Metlog's configuration by means of a
+`dict`, the plugin can be loaded with the example `dict` that follows,
+which will also bind the method `raven` to the Metlog client. ::
+
+    {
+        'sender_class': 'metlog.senders.StdOutSender',
+        'plugins' : {
+            'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]
+        }
+    }
+
 You do not need to specify any other options to enable the plugin.
 The default settings are probably fine for you.  You may however set 4
 options if you choose.
@@ -35,11 +46,15 @@ That said, if you are impatient you can obtain a client using
 `get_client`.  We strongly suggest you do not do this though. ::
 
     from metlog.holder import get_client
-    get_client('myapp', {'sender_class': 'metlog.senders.StdOutSender'})
+    get_client('myapp',
+            {
+             'sender_class': 'metlog.senders.StdOutSender',
+             'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+            })
 
 Note that the above sender configuration will only route messages to
 stdout so that you can verify that logging is happening during
-development
+development.
 
 Logging exceptions is passive.   The raven plugin will not rethrow an
 exception automatically if you invoke the method on the client
@@ -58,10 +73,13 @@ will log catcha n exception and fire it off to details. ::
     from metlog.holder import get_client
 
     metlog = get_client('some_client_name', 
-                 {'sender_class': 'metlog.senders.StdOutSender'})
+                 {
+                    'sender_class': 'metlog.senders.StdOutSender',
+                    'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+                 })
     try:
         do_some_exception_throwing_thing()
-    except SomeExceptionType, se:
+    except:
         metlog.raven('something bad happened')
 
         # re-raise the exception so someone can properly handle
@@ -71,11 +89,21 @@ will log catcha n exception and fire it off to details. ::
 
 or you can use the decorator syntax ::
 
+    from metlog.holder import get_client
     from metlog_raven.raven_plugin import capture_stack
+
+    metlog = get_client('some_client_name', 
+                 {
+                    'sender_class': 'metlog.senders.StdOutSender',
+                    'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+                 })
 
     @capture_stack
     def some_function(foo, bar):
         # Some code here that throws exceptions
+        do_some_exception_throwing_thing()
+
+    some_function('foo', 'bar')
 
 Data structure
 ==============
