@@ -4,16 +4,22 @@ Configuration
 Configuration is normally handled through Metlog's configuration
 system using INI configuration files. A raven plugin must use the
 `metlog_raven.raven_plugin:config_plugin` as the provider of the
-plugin.  The suffix of the configuration section name is used to
-set the method name on the Metlog client. Any part after
-`metlog_plugin_` will be used as the method name.
+plugin.  
+
+The metlog_raven plugin exports a name of 'raven' which is bound into
+the metlog client.
+
+Prior versions of metlog used to use the configuration section name
+for name binding - this isn't the case anymore.
 
 In the following example, we will bind a method `raven` into the
 Metlog client so that we can send stacktrace information to the 
 Metlog server. ::
 
-    [metlog_plugin_raven]
+    [metlog_plugin_ravensection]
     provider=metlog_raven.raven_plugin:config_plugin
+    sentry_project_id = 2
+
 
 Alternatively, if loading Metlog's configuration by means of a
 `dict`, the plugin can be loaded with the example `dict` that follows,
@@ -22,16 +28,22 @@ which will also bind the method `raven` to the Metlog client. ::
     {
         'sender_class': 'metlog.senders.StdOutSender',
         'plugins' : {
-            'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]
+            'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                       {'sentry_project_id': 2}]
         }
     }
 
-You do not need to specify any other options to enable the plugin.
-The default settings are probably fine for you.  You may however set 4
-options if you choose.
+You *must* specify which Sentry project ID to route messages to.
+The sentry project ID is the integer at the end of the Sentry DSN.
+
+For example, a DSN of 
+`http://bf39853b76174acaaea69101b23bcdbb:074b52c7276b4d65841be96cdb298efc@192.168.20.2:9000/2`
+has a project id of 2.
+
+You may also set 2 optional settings :
 
     * logger: The name that metlog will use when logging messages. By
-              default this string is empty
+              default this is set by the metlog client.
     * severity: The default severity of the error.  Default severity
       level is 3 as defined by `metlog.client:SEVERITY.ERROR` 
       <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py>
@@ -49,7 +61,10 @@ That said, if you are impatient you can obtain a client using
     get_client('myapp',
             {
              'sender_class': 'metlog.senders.StdOutSender',
-             'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+              'plugins' : {
+                  'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                                 {'sentry_project_id': 2}]
+                          }
             })
 
 Note that the above sender configuration will only route messages to
@@ -75,7 +90,10 @@ will log catcha n exception and fire it off to details. ::
     metlog = get_client('some_client_name', 
                  {
                     'sender_class': 'metlog.senders.StdOutSender',
-                    'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+                     'plugins' : {
+                          'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                                         {'sentry_project_id': 2}]
+                                  }
                  })
     try:
         do_some_exception_throwing_thing()
@@ -95,7 +113,10 @@ or you can use the decorator syntax ::
     metlog = get_client('some_client_name', 
                  {
                     'sender_class': 'metlog.senders.StdOutSender',
-                    'plugins': {'raven' : ['metlog_raven.raven_plugin:config_plugin', {}]}
+                     'plugins' : {
+                          'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                                         {'sentry_project_id': 2}]
+                                  }
                  })
 
     @capture_stack

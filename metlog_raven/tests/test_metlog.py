@@ -9,7 +9,6 @@ from metlog.client import SEVERITY
 from metlog.holder import CLIENT_HOLDER
 from metlog_raven.raven_plugin import RavenClient
 from metlog_raven.raven_plugin import capture_stack
-from metlog.config import client_from_text_config
 from metlog.config import client_from_dict_config
 from nose.tools import eq_
 import json
@@ -24,7 +23,7 @@ class TestCannedDecorators(object):
 
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender', 
+        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
                     ('metlog_raven.raven_plugin:config_plugin',
                         {'sentry_project_id': 2})}
@@ -94,8 +93,8 @@ class TestBadConfigurations(object):
 
         client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender', 
                 'plugins': {'plugin_section_name':
-                    ('metlog_raven.raven_plugin:config_plugin',
-                        {'sentry_project_id': 2})}
+                    ['metlog_raven.raven_plugin:config_plugin', {'sentry_project_id': 2}]
+                    }
                     }
         self.client = client_from_dict_config(client_config, client)
         CLIENT_HOLDER.set_default_client_name(self.client_name)
