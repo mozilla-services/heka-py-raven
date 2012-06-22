@@ -9,20 +9,26 @@ from metlog.client import SEVERITY
 from metlog.holder import CLIENT_HOLDER
 from metlog_raven.raven_plugin import RavenClient
 from metlog_raven.raven_plugin import capture_stack
+from metlog.config import client_from_text_config
 from metlog.config import client_from_dict_config
 from nose.tools import eq_
 import json
 
 
-class DecoratorTestBase(object):
-    client_name = '_decorator_test'
+class TestCannedDecorators(object):
+
+    client_name = '_default_client'
 
     def setUp(self):
         self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
+
         client = CLIENT_HOLDER.get_client(self.client_name)
-        client_config = {
-            'sender_class': 'metlog.senders.DebugCaptureSender',
-            }
+
+        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender', 
+                'plugins': {'plugin_section_name':
+                    ('metlog_raven.raven_plugin:config_plugin',
+                        {'sentry_project_id': 2})}
+                    }
         self.client = client_from_dict_config(client_config, client)
         CLIENT_HOLDER.set_default_client_name(self.client_name)
 
@@ -30,8 +36,6 @@ class DecoratorTestBase(object):
         del CLIENT_HOLDER._clients[self.client_name]
         CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
-
-class TestCannedDecorators(DecoratorTestBase):
     def test_capture_stack(self):
 
         ###
@@ -79,88 +83,52 @@ class TestCannedDecorators(DecoratorTestBase):
         eq_(25, clean_exception_call(5, 5))
 
 
-def test_plugins_config():
-    cfg_txt = """
-    [metlog]
-    sender_class = metlog.senders.DebugCaptureSender
+class TestBadConfigurations(object):
 
-    [metlog_plugin_raven]
-    provider=metlog_raven.raven_plugin:config_plugin
-    """
-    from metlog.config import client_from_text_config
-    import json
+    client_name = '_default_client'
 
-    client = client_from_text_config(cfg_txt, 'metlog')
+    def setUp(self):
+        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
 
-    def exception_call2(a, b, c):
-        return a + b + c / (a - b)
+        client = CLIENT_HOLDER.get_client(self.client_name)
 
-    def exception_call1(x, y):
-        return exception_call2(y, x, 42)
+        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender', 
+                'plugins': {'plugin_section_name':
+                    ('metlog_raven.raven_plugin:config_plugin',
+                        {'sentry_project_id': 2})}
+                    }
+        self.client = client_from_dict_config(client_config, client)
+        CLIENT_HOLDER.set_default_client_name(self.client_name)
 
-    try:
-        exception_call1(5, 5)
-    except:
-        client.raven('some message')
+    def tearDown(self):
+        del CLIENT_HOLDER._clients[self.client_name]
+        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
-    eq_(1, len(client.sender.msgs))
+    def test_raven_method(self):
+        def exception_call2(a, b, c):
+            return a + b + c / (a - b)
 
-    msg = json.loads(client.sender.msgs[0])
+        def exception_call1(x, y):
+            return exception_call2(y, x, 42)
 
-    rc = RavenClient()
-    sentry_fields = rc.decode(msg['payload'])
-    eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
-    eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
-    eq_(sentry_fields['extra']['msg'], 'some message')
-
-    eq_(msg['logger'], '')
-    eq_(msg['fields']['msg'], 'some message')
-    eq_(msg['type'], 'sentry')
-    eq_(msg['severity'], SEVERITY.ERROR)
-
-
-def test_simple_client_use():
-    cfg_txt = """
-    [metlog]
-    sender_class = metlog.senders.DebugCaptureSender
-
-    [metlog_plugin_raven]
-    provider=metlog_raven.raven_plugin:config_plugin
-
-    [metlog_plugin_error]
-    provider=metlog_raven.raven_plugin:config_plugin
-    override=True
-    """
-    from metlog.config import client_from_text_config
-    import json
-
-    client = client_from_text_config(cfg_txt, 'metlog')
-
-    msgs = [json.loads(m) for m in client.sender.msgs]
-    assert len(msgs) == 0
-
-    try:
-        5 / 0
-    except:
         try:
-            client.raven()
+            exception_call1(5, 5)
         except:
-            raise AssertionError()
+            self.client.raven('some message')
 
-    msgs = [json.loads(m) for m in client.sender.msgs]
-    assert len(msgs) == 1
+        eq_(1, len(self.client.sender.msgs))
 
-    client.sender.msgs.clear()
-    msgs = [json.loads(m) for m in client.sender.msgs]
-    assert len(msgs) == 0
+        msg = json.loads(self.client.sender.msgs[0])
 
-    try:
-        5 / 0
-    except:
-        try:
-            client.error()
-        except:
-            raise AssertionError()
+        rc = RavenClient()
+        sentry_fields = rc.decode(msg['payload'])
+        eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
+        eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
+        eq_(sentry_fields['extra']['msg'], 'some message')
 
-    msgs = [json.loads(m) for m in client.sender.msgs]
-    assert len(msgs) == 1
+        eq_(msg['logger'], '')
+        eq_(msg['fields']['msg'], 'some message')
+        eq_(msg['type'], 'sentry')
+        eq_(msg['severity'], SEVERITY.ERROR)
+
+
