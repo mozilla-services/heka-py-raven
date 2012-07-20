@@ -32,7 +32,7 @@ setup(name='metlog-raven',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'metlog-py',
+          'metlog-py>=0.9.4',
           'raven==1.9.4'  # this is not a typo - please do pin a
                           # specific version as we've had API breakage
                           # between versions of raven

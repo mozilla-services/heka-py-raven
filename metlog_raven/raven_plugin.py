@@ -137,8 +137,13 @@ def config_plugin(config):
 
     rc = RavenClient(project=sentry_project_id)
 
-    def metlog_raven(self, msg='', logger=default_logger,
-            severity=default_severity, exc_info=None, **kwargs):
+    def metlog_raven(self,
+            msg='',
+            exc_info=True,
+            logger=default_logger,
+            severity=default_severity,
+            *args, **kwargs):
+
         """
         :param msg: optional string you wish to attach to the error
         :param logger: optional logger you would like to use instead
@@ -157,7 +162,9 @@ def config_plugin(config):
             # There is no exception
             return
 
-        payload = rc.captureException(exc_info, extra={'msg': msg})
+        payload = rc.captureException(exc_info, extra={'msg': msg,
+            'logger': logger,
+            'severity': severity})
 
         fields = {'epoch_timestamp': time.time(), 'msg': msg}
         fields.update(kwargs)
