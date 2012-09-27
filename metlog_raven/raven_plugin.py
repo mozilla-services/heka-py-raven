@@ -143,10 +143,10 @@ def config_plugin(config):
         raise InvalidArgumentError("Unexpected arguments: %s" % str(config.keys()))
 
     if sentry_dsn:
-        # This method of instantiation is deprecated. Please use the
-        # dsn from now on.
         rc = RavenClient(dsn=sentry_dsn)
     else:
+        # This method of instantiation is deprecated. Please use the
+        # dsn from now on.
         rc = RavenClient(project=sentry_project_id)
 
     def metlog_raven(self,
