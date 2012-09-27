@@ -14,3 +14,10 @@ More information about how Mozilla Services is using Metlog (including what is
 being used for a router and what endpoints are in use / planning to be used)
 can be found on the relevant `spec page
 <https://wiki.mozilla.org/Services/Sagrada/Metlog>`_.
+
+This version of metlog-raven must be used with :
+
+  * Raven client version 2.0.6
+  * Sentry server 5.0.13
+
+Other versions may work, but they have not been tested.

@@ -134,12 +134,17 @@ def config_plugin(config):
 
     default_logger = config.pop('logger', None)
     default_severity = config.pop('severity', SEVERITY.ERROR)
+    
+    # This argument is deprecated.  Please use the dsn from now on.
     sentry_project_id = config.pop("sentry_project_id", None)
+
     sentry_dsn = config.pop("dsn", None)
     if len(config) > 0:
         raise InvalidArgumentError("Unexpected arguments: %s" % str(config.keys()))
 
     if sentry_dsn:
+        # This method of instantiation is deprecated. Please use the
+        # dsn from now on.
         rc = RavenClient(dsn=sentry_dsn)
     else:
         rc = RavenClient(project=sentry_project_id)

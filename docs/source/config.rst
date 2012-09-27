@@ -18,7 +18,7 @@ Metlog server. ::
 
     [metlog_plugin_ravensection]
     provider=metlog_raven.raven_plugin:config_plugin
-    sentry_project_id = 2
+    dsn = udp://username:password@sentryhost.com:9001/2
 
 
 Alternatively, if loading Metlog's configuration by means of a
@@ -29,16 +29,13 @@ which will also bind the method `raven` to the Metlog client. ::
         'sender_class': 'metlog.senders.StdOutSender',
         'plugins' : {
             'raven' : ['metlog_raven.raven_plugin:config_plugin', 
-                       {'sentry_project_id': 2}]
+                       {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
         }
     }
 
-You *must* specify which Sentry project ID to route messages to.
-The sentry project ID is the integer at the end of the Sentry DSN.
-
-For example, a DSN of 
-`http://bf39853b76174acaaea69101b23bcdbb:074b52c7276b4d65841be96cdb298efc@192.168.20.2:9000/2`
-has a project id of 2.
+An older deprecated API exists where you must specify which Sentry
+project ID to route messages to.  This is no longer supported, and you
+should just pass in the DSN to the metlog client.
 
 You may also set 2 optional settings :
 
@@ -92,7 +89,7 @@ will log catcha n exception and fire it off to details. ::
                     'sender_class': 'metlog.senders.StdOutSender',
                      'plugins' : {
                           'raven' : ['metlog_raven.raven_plugin:config_plugin', 
-                                         {'sentry_project_id': 2}]
+                                       {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
                                   }
                  })
     try:
@@ -115,7 +112,7 @@ or you can use the decorator syntax ::
                     'sender_class': 'metlog.senders.StdOutSender',
                      'plugins' : {
                           'raven' : ['metlog_raven.raven_plugin:config_plugin', 
-                                         {'sentry_project_id': 2}]
+                                       {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
                                   }
                  })
 
@@ -125,6 +122,13 @@ or you can use the decorator syntax ::
         do_some_exception_throwing_thing()
 
     some_function('foo', 'bar')
+
+Compatibility
+=============
+
+This version of metlog-raven has only been tested to work against
+Raven 2.0.6 and Sentry 5.0.13.  Other versions may work for you, but
+they have not been tested.
 
 Data structure
 ==============
