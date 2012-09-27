@@ -8,9 +8,11 @@
 from metlog.client import SEVERITY
 from metlog.holder import CLIENT_HOLDER
 from metlog_raven.raven_plugin import RavenClient
+from metlog_raven.raven_plugin import InvalidArgumentError
 from metlog_raven.raven_plugin import capture_stack
 from metlog.config import client_from_dict_config
 from nose.tools import eq_
+from nose.tools import assert_raises
 import json
 
 
@@ -23,7 +25,7 @@ class TestCannedDecorators(object):
 
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender',
+        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
                     ('metlog_raven.raven_plugin:config_plugin',
                         {'sentry_project_id': 2})}
@@ -82,7 +84,7 @@ class TestCannedDecorators(object):
         eq_(25, clean_exception_call(5, 5))
 
 
-class TestBadConfigurations(object):
+class TestPluginMethod(object):
 
     client_name = '_default_client'
 
@@ -91,11 +93,11 @@ class TestBadConfigurations(object):
 
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = { 'sender_class': 'metlog.senders.DebugCaptureSender', 
+        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
-                    ['metlog_raven.raven_plugin:config_plugin', {'sentry_project_id': 2}]
-                    }
-                    }
+                    ['metlog_raven.raven_plugin:config_plugin',
+                        {'sentry_project_id': 2}]
+                    }}
         self.client = client_from_dict_config(client_config, client)
         CLIENT_HOLDER.set_default_client_name(self.client_name)
 
@@ -129,5 +131,65 @@ class TestBadConfigurations(object):
         eq_(msg['fields']['msg'], 'some message')
         eq_(msg['type'], 'sentry')
         eq_(msg['severity'], SEVERITY.ERROR)
+        eq_(msg['fields']['dsn'], None)
 
 
+def test_invalid_config():
+    dsn = "udp://username:password@somehost.com:9000/2"
+    client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
+            'plugins': {'metlog_raven':
+                       ['metlog_raven.raven_plugin:config_plugin',
+                       {'sentry_dsn': dsn}]
+                }}
+    assert_raises(InvalidArgumentError, client_from_dict_config, client_config)
+
+
+class TestDSNConfiguration(object):
+
+    client_name = '_default_client'
+
+    def setUp(self):
+        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
+
+        client = CLIENT_HOLDER.get_client(self.client_name)
+
+        self.dsn = "udp://username:password@somehost.com:9000/2"
+        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
+                'plugins': {'plugin_section_name':
+                    ['metlog_raven.raven_plugin:config_plugin',
+                        {'dsn': self.dsn}]
+                    }}
+        self.client = client_from_dict_config(client_config, client)
+        CLIENT_HOLDER.set_default_client_name(self.client_name)
+
+    def tearDown(self):
+        del CLIENT_HOLDER._clients[self.client_name]
+        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
+
+    def test_raven_method(self):
+        def exception_call2(a, b, c):
+            return a + b + c / (a - b)
+
+        def exception_call1(x, y):
+            return exception_call2(y, x, 42)
+
+        try:
+            exception_call1(5, 5)
+        except:
+            self.client.raven('some message')
+
+        eq_(1, len(self.client.sender.msgs))
+
+        msg = json.loads(self.client.sender.msgs[0])
+
+        rc = RavenClient()
+        sentry_fields = rc.decode(msg['payload'])
+        eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
+        eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
+        eq_(sentry_fields['extra']['msg'], 'some message')
+
+        eq_(msg['logger'], '')
+        eq_(msg['fields']['msg'], 'some message')
+        eq_(msg['type'], 'sentry')
+        eq_(msg['severity'], SEVERITY.ERROR)
+        eq_(msg['fields']['dsn'], self.dsn)

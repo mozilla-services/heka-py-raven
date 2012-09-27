@@ -16,6 +16,7 @@ import time
 
 METLOG_PLUGIN_NAME = 'raven'
 
+class InvalidArgumentError(RuntimeError): pass
 
 class RavenClient(Client):
     """
@@ -133,9 +134,20 @@ def config_plugin(config):
 
     default_logger = config.pop('logger', None)
     default_severity = config.pop('severity', SEVERITY.ERROR)
-    sentry_project_id = config["sentry_project_id"]
+    
+    # This argument is deprecated.  Please use the dsn from now on.
+    sentry_project_id = config.pop("sentry_project_id", None)
 
-    rc = RavenClient(project=sentry_project_id)
+    sentry_dsn = config.pop("dsn", None)
+    if len(config) > 0:
+        raise InvalidArgumentError("Unexpected arguments: %s" % str(config.keys()))
+
+    if sentry_dsn:
+        # This method of instantiation is deprecated. Please use the
+        # dsn from now on.
+        rc = RavenClient(dsn=sentry_dsn)
+    else:
+        rc = RavenClient(project=sentry_project_id)
 
     def metlog_raven(self,
             msg='',
@@ -155,7 +167,7 @@ def config_plugin(config):
                          provided, sys.exc_info() will be used.
         """
 
-        if exc_info is None:
+        if exc_info is None or exc_info is True:
             exc_info = sys.exc_info()
 
         if exc_info == (None, None, None):
@@ -166,7 +178,10 @@ def config_plugin(config):
             'logger': logger,
             'severity': severity})
 
-        fields = {'epoch_timestamp': time.time(), 'msg': msg}
+        fields = {'epoch_timestamp': time.time(),
+                  'msg': msg,
+                  'dsn': sentry_dsn,
+                 }
         fields.update(kwargs)
         self.metlog(type='sentry',
                 logger=logger,
