@@ -28,7 +28,7 @@ class TestCannedDecorators(object):
         client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
                     ('metlog_raven.raven_plugin:config_plugin',
-                        {'sentry_project_id': 2})}
+                        {'dsn': 'udp://someuser:somepass@somehost.com:5000/2'})}
                     }
         self.client = client_from_dict_config(client_config, client)
         CLIENT_HOLDER.set_default_client_name(self.client_name)
@@ -89,6 +89,7 @@ class TestPluginMethod(object):
     client_name = '_default_client'
 
     def setUp(self):
+        self.dsn = "udp://username:password@somehost.com:9000/2"
         self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
 
         client = CLIENT_HOLDER.get_client(self.client_name)
@@ -96,7 +97,7 @@ class TestPluginMethod(object):
         client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
                     ['metlog_raven.raven_plugin:config_plugin',
-                        {'sentry_project_id': 2}]
+                        {'dsn': self.dsn}]
                     }}
         self.client = client_from_dict_config(client_config, client)
         CLIENT_HOLDER.set_default_client_name(self.client_name)
@@ -131,7 +132,7 @@ class TestPluginMethod(object):
         eq_(msg['fields']['msg'], 'some message')
         eq_(msg['type'], 'sentry')
         eq_(msg['severity'], SEVERITY.ERROR)
-        eq_(msg['fields']['dsn'], None)
+        eq_(msg['fields']['dsn'], self.dsn)
 
 
 def test_invalid_config():
