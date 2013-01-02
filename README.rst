@@ -2,6 +2,8 @@
 metlog-raven
 ============
 
+.. image:: https://secure.travis-ci.org/mozilla-services/metlog-raven.png
+
 metlog-raven is a plugin extension for `Metlog 
 <http://github.com/mozilla-services/metlog-py>`.  metlog-raven
 provides logging extensions to capture stacktraces and some frame
