@@ -167,16 +167,21 @@ def config_plugin(config):
                          provided, sys.exc_info() will be used.
         """
 
+        payload = kwargs.get('payload', None)
+
         if exc_info is None or exc_info is True:
             exc_info = sys.exc_info()
 
-        if exc_info == (None, None, None):
+        if exc_info == (None, None, None) and payload is None:
             # There is no exception
             return
 
-        payload = rc.captureException(exc_info, extra={'msg': msg,
-            'logger': logger,
-            'severity': severity})
+        if 'payload' not in kwargs:
+            payload = rc.captureException(exc_info, extra={'msg': msg,
+                'logger': logger,
+                'severity': severity})
+        else:
+            payload = kwargs['payload']
 
         fields = {'epoch_timestamp': time.time(),
                   'msg': msg,

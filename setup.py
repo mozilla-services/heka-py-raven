@@ -15,7 +15,7 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.3'
+version = '0.4'
 
 setup(name='metlog-raven',
       version=version,

@@ -194,3 +194,14 @@ class TestDSNConfiguration(object):
         eq_(msg['type'], 'sentry')
         eq_(msg['severity'], SEVERITY.ERROR)
         eq_(msg['fields']['dsn'], self.dsn)
+
+    def test_explicit_payloads(self):
+        expected_payload="some payload data"
+        self.client.raven(payload=expected_payload)
+        eq_(1, len(self.client.sender.msgs))
+        msg = json.loads(self.client.sender.msgs[0])
+        eq_(msg['payload'], expected_payload)
+
+    def test_no_sentry_message(self):
+        self.client.raven()
+        eq_(0, len(self.client.sender.msgs))
