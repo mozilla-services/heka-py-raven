@@ -19,7 +19,7 @@ can be found on the relevant `spec page
 
 This version of metlog-raven must be used with :
 
-  * Raven client version 2.0.6
-  * Sentry server 5.0.13
+  * Raven client version 3.1.16
+  * Sentry server 5.4.2
 
 Other versions may work, but they have not been tested.

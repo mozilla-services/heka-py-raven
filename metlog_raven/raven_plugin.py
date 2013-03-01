@@ -79,10 +79,6 @@ class RavenClient(Client):
         data = self.build_msg(event_type, data, date, time_spent,
                 extra, stack, **kwargs)
 
-        # raven adds a 'public_key' field which breaks sentry for some
-        # reason
-        del data['public_key']
-
         message = self.encode(data)
 
         # The standard raven client normally sends data out here

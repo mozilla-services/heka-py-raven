@@ -64,7 +64,8 @@ class TestCannedDecorators(object):
         sentry_fields = rc.decode(event['payload'])
 
         eq_(sentry_fields['culprit'],
-            'test_metlog.exception_call2')
+            'test_metlog in exception_call2')
+
         frames = sentry_fields['sentry.interfaces.Stacktrace']['frames']
         culprit_frame = [f for f in frames \
                             if f['function'] == 'exception_call2'][0]
@@ -124,7 +125,7 @@ class TestPluginMethod(object):
 
         rc = RavenClient()
         sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
+        eq_(sentry_fields['culprit'], 'test_metlog in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 
@@ -185,7 +186,7 @@ class TestDSNConfiguration(object):
 
         rc = RavenClient()
         sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_metlog.exception_call2')
+        eq_(sentry_fields['culprit'], 'test_metlog in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 
