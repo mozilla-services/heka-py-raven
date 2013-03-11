@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Metlog-raven documentation build configuration file, created by
+# Heka-raven documentation build configuration file, created by
 # sphinx-quickstart on Mon Apr  2 11:47:47 2012.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Metlog-raven'
+project = u'Heka-raven'
 copyright = u'2012, Rob Miller, Victor Ng'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -162,7 +162,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Metlog-ravendoc'
+htmlhelp_basename = 'Heka-ravendoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -181,7 +181,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Metlog-raven.tex', u'Metlog-raven Documentation',
+  ('index', 'Heka-raven.tex', u'Heka-raven Documentation',
    u'Rob Miller, Victor Ng', 'manual'),
 ]
 
@@ -211,7 +211,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'metlog-raven', u'Metlog-raven Documentation',
+    ('index', 'heka-raven', u'Heka-raven Documentation',
      [u'Rob Miller, Victor Ng'], 1)
 ]
 
@@ -225,8 +225,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Metlog-raven', u'Metlog-raven Documentation', u'Rob Miller, Victor Ng',
-   'Metlog-raven', 'One line description of project.', 'Miscellaneous'),
+  ('index', 'Heka-raven', u'Heka-raven Documentation', u'Rob Miller, Victor Ng',
+   'Heka-raven', 'One line description of project.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

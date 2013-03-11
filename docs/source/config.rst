@@ -1,65 +1,65 @@
 Configuration
 =============
 
-Configuration is normally handled through Metlog's configuration
+Configuration is normally handled through Heka's configuration
 system using INI configuration files. A raven plugin must use the
-`metlog_raven.raven_plugin:config_plugin` as the provider of the
+`heka_raven.raven_plugin:config_plugin` as the provider of the
 plugin.  
 
-The metlog_raven plugin exports a name of 'raven' which is bound into
-the metlog client.
+The heka_raven plugin exports a name of 'raven' which is bound into
+the heka client.
 
-Prior versions of metlog used to use the configuration section name
+Prior versions of heka used to use the configuration section name
 for name binding - this isn't the case anymore.
 
 In the following example, we will bind a method `raven` into the
-Metlog client so that we can send stacktrace information to the 
-Metlog server. ::
+Heka client so that we can send stacktrace information to the 
+Heka server. ::
 
-    [metlog_plugin_ravensection]
-    provider=metlog_raven.raven_plugin:config_plugin
+    [heka_plugin_ravensection]
+    provider=heka_raven.raven_plugin:config_plugin
     dsn = udp://username:password@sentryhost.com:9001/2
 
 
-Alternatively, if loading Metlog's configuration by means of a
+Alternatively, if loading Heka's configuration by means of a
 `dict`, the plugin can be loaded with the example `dict` that follows,
-which will also bind the method `raven` to the Metlog client. ::
+which will also bind the method `raven` to the Heka client. ::
 
     {
-        'sender_class': 'metlog.senders.StdOutSender',
+        'sender_class': 'heka.senders.StdOutSender',
         'plugins' : {
-            'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+            'raven' : ['heka_raven.raven_plugin:config_plugin', 
                        {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
         }
     }
 
 An older deprecated API exists where you must specify which Sentry
 project ID to route messages to.  This is no longer supported, and you
-should just pass in the DSN to the metlog client.
+should just pass in the DSN to the heka client.
 
 You may also set 2 optional settings :
 
-    * logger: The name that metlog will use when logging messages. By
-              default this is set by the metlog client.
+    * logger: The name that heka will use when logging messages. By
+              default this is set by the heka client.
     * severity: The default severity of the error.  Default severity
-      level is 3 as defined by `metlog.client:SEVERITY.ERROR` 
-      <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py>
+      level is 3 as defined by `heka.client:SEVERITY.ERROR` 
+      <https://github.com/mozilla-services/heka-py/blob/master/heka/client.py>
 
 Usage
 =====
 
 Obtaining a client should probably be done through your framework.
-Please refer to the metlog documentation for complete details.
+Please refer to the heka documentation for complete details.
 
 That said, if you are impatient you can obtain a client using
 `get_client`.  We strongly suggest you do not do this though. ::
 
-    from metlog.holder import get_client
+    from heka.holder import get_client
     get_client('myapp',
             {
-             'sender_class': 'metlog.senders.StdOutSender',
+             'sender_class': 'heka.senders.StdOutSender',
               'plugins' : {
-                  'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                  'raven' : ['heka_raven.raven_plugin:config_plugin', 
                                  {'sentry_project_id': 2}]
                           }
             })
@@ -82,20 +82,20 @@ decorator syntax, or access the plugin through the standard client.
 Using the example configuration listed above, the following snippet
 will log catcha n exception and fire it off to details. ::
 
-    from metlog.holder import get_client
+    from heka.holder import get_client
 
-    metlog = get_client('some_client_name', 
+    heka = get_client('some_client_name', 
                  {
-                    'sender_class': 'metlog.senders.StdOutSender',
+                    'sender_class': 'heka.senders.StdOutSender',
                      'plugins' : {
-                          'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                          'raven' : ['heka_raven.raven_plugin:config_plugin', 
                                        {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
                                   }
                  })
     try:
         do_some_exception_throwing_thing()
     except:
-        metlog.raven('something bad happened')
+        heka.raven('something bad happened')
 
         # re-raise the exception so someone can properly handle
         # the error
@@ -104,14 +104,14 @@ will log catcha n exception and fire it off to details. ::
 
 or you can use the decorator syntax ::
 
-    from metlog.holder import get_client
-    from metlog_raven.raven_plugin import capture_stack
+    from heka.holder import get_client
+    from heka_raven.raven_plugin import capture_stack
 
-    metlog = get_client('some_client_name', 
+    heka = get_client('some_client_name', 
                  {
-                    'sender_class': 'metlog.senders.StdOutSender',
+                    'sender_class': 'heka.senders.StdOutSender',
                      'plugins' : {
-                          'raven' : ['metlog_raven.raven_plugin:config_plugin', 
+                          'raven' : ['heka_raven.raven_plugin:config_plugin', 
                                        {'dsn': "udp://username:password@sentryhost.com:9001/2"}]
                                   }
                  })
@@ -126,7 +126,7 @@ or you can use the decorator syntax ::
 Compatibility
 =============
 
-This version of metlog-raven has only been tested to work against
+This version of heka-raven has only been tested to work against
 Raven 2.0.6 and Sentry 5.0.13.  Other versions may work for you, but
 they have not been tested.
 
@@ -140,7 +140,7 @@ to note:
     * The severity is set to 3 (SEVERITY.ERROR)
 
 In the context of determining the source of the error, the 'fields'
-section of the metlog blob has 2 keys which are of particular
+section of the heka blob has 2 keys which are of particular
 interest.
 
     * culprit: This is the function name that threw the
@@ -174,14 +174,14 @@ included test suite.  ::
      u'timestamp': u'2012-05-08T15:16:51.859750',
      u'type': u'sentry'}
 
-Metlog adds two keys into the fields dictionary.  One is the
+Heka adds two keys into the fields dictionary.  One is the
 'epoch_timestamp' key into the 'fields' dictionary so that logstash
 can properly record the time that the exception event occured.
 Although raven already captures the timestamp, it's encoded in a
 binary blob that logstash can't read.
 
 The other key is 'msg' which is an optional string argument to attach
-to the stacktrace.  The message string is included in both the Metlog
+to the stacktrace.  The message string is included in both the Heka
 'fields' dictionary as well as within the Raven binary blob in the
 'extra' key.
 
@@ -190,7 +190,7 @@ encoded format for simplicity. Unpacked, the raven encodes the
 following information.  ::
 
     {'checksum': 'ccd44e9a94c1fe48503b38dd95859c95',
-     'culprit': 'test_metlog.exception_call2',
+     'culprit': 'test_heka.exception_call2',
      'event_id': '443e20a669b04ba38711f29e74376392',
      'extra': {'msg': ''},
      'level': 40,
@@ -200,29 +200,29 @@ following information.  ::
      'sentry.interfaces.Exception': {'module': 'exceptions',
                                      'type': 'ZeroDivisionError',
                                      'value': 'integer division or modulo by zero'},
-     'sentry.interfaces.Stacktrace': {'frames': [{'abs_path': '/Users/victorng/dev/metlog-raven/metlog_raven/tests/test_metlog.py',
+     'sentry.interfaces.Stacktrace': {'frames': [{'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        exception_call1(5, 5)',
-                                                  'filename': 'tests/test_metlog.py',
+                                                  'filename': 'tests/test_heka.py',
                                                   'function': 'test_plugins_config',
                                                   'lineno': 93,
-                                                  'module': 'test_metlog',
+                                                  'module': 'test_heka',
                                                   'post_context': ['    except:',
                                                                    "        client.raven('some_logger_name')"],
                                                   'pre_context': ['        return exception_call2(y, x, 42)',
                                                                   '',
                                                                   '    try:'],
-                                                  'vars': {'cfg_txt': '\n    [metlog]\n    sender_class = metlog.senders.DebugCaptureSender\n\n    [metlog_plugin_raven]\n    provider=metlog_raven.raven_plugin:config_plugin\n    ',
-                                                           'client': '<metlog.client.MetlogClient object at 0x100f1fc50>',
+                                                  'vars': {'cfg_txt': '\n    [heka]\n    sender_class = heka.senders.DebugCaptureSender\n\n    [heka_plugin_raven]\n    provider=heka_raven.raven_plugin:config_plugin\n    ',
+                                                           'client': '<heka.client.HekaClient object at 0x100f1fc50>',
                                                            'client_from_text_config': '<function client_from_text_config at 0x100cc0aa0>',
                                                            'exception_call1': '<function exception_call1 at 0x100f301b8>',
                                                            'exception_call2': '<function exception_call2 at 0x100f27f50>',
                                                            'json': "<module 'json' from '/System/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/json/__init__.pyc'>"}},
-                                                 {'abs_path': '/Users/victorng/dev/metlog-raven/metlog_raven/tests/test_metlog.py',
+                                                 {'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        return exception_call2(y, x, 42)',
-                                                  'filename': 'tests/test_metlog.py',
+                                                  'filename': 'tests/test_heka.py',
                                                   'function': 'exception_call1',
                                                   'lineno': 90,
-                                                  'module': 'test_metlog',
+                                                  'module': 'test_heka',
                                                   'post_context': ['',
                                                                    '    try:'],
                                                   'pre_context': ['        return a + b + c / (a - b)',
@@ -231,15 +231,15 @@ following information.  ::
                                                   'vars': {'exception_call2': '<function exception_call2 at 0x100f27f50>',
                                                            'x': 5,
                                                            'y': 5}},
-                                                 {'abs_path': '/Users/victorng/dev/metlog-raven/metlog_raven/tests/test_metlog.py',
+                                                 {'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        return a + b + c / (a - b)',
-                                                  'filename': 'tests/test_metlog.py',
+                                                  'filename': 'tests/test_heka.py',
                                                   'function': 'exception_call2',
                                                   'lineno': 87,
-                                                  'module': 'test_metlog',
+                                                  'module': 'test_heka',
                                                   'post_context': ['',
                                                                    '    def exception_call1(x, y):'],
-                                                  'pre_context': ["    client = client_from_text_config(cfg_txt, 'metlog')",
+                                                  'pre_context': ["    client = client_from_text_config(cfg_txt, 'heka')",
                                                                   '',
                                                                   '    def exception_call2(a, b, c):'],
                                                   'vars': {'a': 5,

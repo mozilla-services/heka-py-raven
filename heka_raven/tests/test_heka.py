@@ -5,12 +5,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 # ***** END LICENSE BLOCK *****
 
-from metlog.client import SEVERITY
-from metlog.holder import CLIENT_HOLDER
-from metlog_raven.raven_plugin import RavenClient
-from metlog_raven.raven_plugin import InvalidArgumentError
-from metlog_raven.raven_plugin import capture_stack
-from metlog.config import client_from_dict_config
+from heka.client import SEVERITY
+from heka.holder import CLIENT_HOLDER
+from heka_raven.raven_plugin import RavenClient
+from heka_raven.raven_plugin import InvalidArgumentError
+from heka_raven.raven_plugin import capture_stack
+from heka.config import client_from_dict_config
 from nose.tools import eq_
 from nose.tools import assert_raises
 import json
@@ -25,9 +25,9 @@ class TestCannedDecorators(object):
 
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
+        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
-                    ('metlog_raven.raven_plugin:config_plugin',
+                    ('heka_raven.raven_plugin:config_plugin',
                         {'dsn': 'udp://someuser:somepass@somehost.com:5000/2'})}
                     }
         self.client = client_from_dict_config(client_config, client)
@@ -64,7 +64,7 @@ class TestCannedDecorators(object):
         sentry_fields = rc.decode(event['payload'])
 
         eq_(sentry_fields['culprit'],
-            'test_metlog in exception_call2')
+            'test_heka in exception_call2')
 
         frames = sentry_fields['sentry.interfaces.Stacktrace']['frames']
         culprit_frame = [f for f in frames \
@@ -95,9 +95,9 @@ class TestPluginMethod(object):
 
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
+        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
-                    ['metlog_raven.raven_plugin:config_plugin',
+                    ['heka_raven.raven_plugin:config_plugin',
                         {'dsn': self.dsn}]
                     }}
         self.client = client_from_dict_config(client_config, client)
@@ -125,7 +125,7 @@ class TestPluginMethod(object):
 
         rc = RavenClient()
         sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_metlog in exception_call2')
+        eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 
@@ -138,9 +138,9 @@ class TestPluginMethod(object):
 
 def test_invalid_config():
     dsn = "udp://username:password@somehost.com:9000/2"
-    client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
-            'plugins': {'metlog_raven':
-                       ['metlog_raven.raven_plugin:config_plugin',
+    client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
+            'plugins': {'heka_raven':
+                       ['heka_raven.raven_plugin:config_plugin',
                        {'sentry_dsn': dsn}]
                 }}
     assert_raises(InvalidArgumentError, client_from_dict_config, client_config)
@@ -156,9 +156,9 @@ class TestDSNConfiguration(object):
         client = CLIENT_HOLDER.get_client(self.client_name)
 
         self.dsn = "udp://username:password@somehost.com:9000/2"
-        client_config = {'sender_class': 'metlog.senders.DebugCaptureSender',
+        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
                 'plugins': {'plugin_section_name':
-                    ['metlog_raven.raven_plugin:config_plugin',
+                    ['heka_raven.raven_plugin:config_plugin',
                         {'dsn': self.dsn}]
                     }}
         self.client = client_from_dict_config(client_config, client)
@@ -186,7 +186,7 @@ class TestDSNConfiguration(object):
 
         rc = RavenClient()
         sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_metlog in exception_call2')
+        eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 

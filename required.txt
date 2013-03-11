@@ -1,2 +1,2 @@
-metlog-py>=0.9.4
+heka-py>=0.10
 raven==3.1.16
