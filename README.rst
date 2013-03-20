@@ -1,11 +1,11 @@
-==========
-heka-raven
-==========
+=============
+heka-py-raven
+=============
 
-.. image:: https://secure.travis-ci.org/mozilla-services/heka-raven.png
+.. image:: https://secure.travis-ci.org/mozilla-services/heka-py-raven.png
 
-heka-raven is a plugin extension for `heka
-<http://github.com/mozilla-services/heka-py>`.  heka-raven
+heka-py-raven is a plugin extension for `heka-py
+<http://github.com/mozilla-services/heka-py>`.  heka-py-raven
 provides logging extensions to capture stacktraces and some frame
 information such as local variables to faciliate debugging.
 
@@ -17,7 +17,7 @@ being used for a router and what endpoints are in use / planning to be used)
 can be found on the `Read The Docs page 
 <https://heka-docs.readthedocs.org>`_.
 
-This version of heka-raven must be used with :
+This version of heka-py-raven must be used with :
 
   * Raven client version 3.1.16
   * Sentry server 5.4.2

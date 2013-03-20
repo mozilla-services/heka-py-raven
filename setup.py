@@ -17,7 +17,7 @@ from setuptools import setup, find_packages
 
 version = '0.5'
 
-setup(name='heka-raven',
+setup(name='heka-py-raven',
       version=version,
       description="A heka-py plugin to send exceptions to Sentry",
       classifiers=[
@@ -26,7 +26,7 @@ setup(name='heka-raven',
       keywords='',
       author='Victor Ng',
       author_email='vng@mozilla.com',
-      url='http://github.com/mozilla-services/heka-raven',
+      url='http://github.com/mozilla-services/heka-py-raven',
       license='MPLv2.0',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
@@ -35,6 +35,4 @@ setup(name='heka-raven',
           'heka-py>=0.10',
           'raven==3.1.16'
       ],
-      entry_points={
-          }
       )

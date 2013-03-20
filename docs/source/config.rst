@@ -126,7 +126,7 @@ or you can use the decorator syntax ::
 Compatibility
 =============
 
-This version of heka-raven has only been tested to work against
+This version of heka-py-raven has only been tested to work against
 Raven 2.0.6 and Sentry 5.0.13.  Other versions may work for you, but
 they have not been tested.
 
@@ -200,7 +200,7 @@ following information.  ::
      'sentry.interfaces.Exception': {'module': 'exceptions',
                                      'type': 'ZeroDivisionError',
                                      'value': 'integer division or modulo by zero'},
-     'sentry.interfaces.Stacktrace': {'frames': [{'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
+     'sentry.interfaces.Stacktrace': {'frames': [{'abs_path': '/Users/victorng/dev/heka-py-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        exception_call1(5, 5)',
                                                   'filename': 'tests/test_heka.py',
                                                   'function': 'test_plugins_config',
@@ -217,7 +217,7 @@ following information.  ::
                                                            'exception_call1': '<function exception_call1 at 0x100f301b8>',
                                                            'exception_call2': '<function exception_call2 at 0x100f27f50>',
                                                            'json': "<module 'json' from '/System/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/json/__init__.pyc'>"}},
-                                                 {'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
+                                                 {'abs_path': '/Users/victorng/dev/heka-py-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        return exception_call2(y, x, 42)',
                                                   'filename': 'tests/test_heka.py',
                                                   'function': 'exception_call1',
@@ -231,7 +231,7 @@ following information.  ::
                                                   'vars': {'exception_call2': '<function exception_call2 at 0x100f27f50>',
                                                            'x': 5,
                                                            'y': 5}},
-                                                 {'abs_path': '/Users/victorng/dev/heka-raven/heka_raven/tests/test_heka.py',
+                                                 {'abs_path': '/Users/victorng/dev/heka-py-raven/heka_raven/tests/test_heka.py',
                                                   'context_line': '        return a + b + c / (a - b)',
                                                   'filename': 'tests/test_heka.py',
                                                   'function': 'exception_call2',
