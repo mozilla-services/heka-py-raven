@@ -180,7 +180,7 @@ def config_plugin(config):
                 'logger': logger,
                 'severity': severity})
         else:
-            payload = kwargs['payload']
+            payload = kwargs.pop('payload')
 
         fields = {'epoch_timestamp': time.time(),
                   'msg': msg,

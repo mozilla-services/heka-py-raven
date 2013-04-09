@@ -202,6 +202,7 @@ class TestDSNConfiguration(object):
         eq_(1, len(self.client.sender.msgs))
         msg = json.loads(self.client.sender.msgs[0])
         eq_(msg['payload'], expected_payload)
+        eq_(msg['fields'].has_key('payload'), False)
 
     def test_no_sentry_message(self):
         self.client.raven()
