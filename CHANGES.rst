@@ -1,4 +1,9 @@
-0.3 - ???
+0.5
+==================
+- First official release compatible with heka-py
+
+
+0.3
 ==================
 
 - Bumped dependency to raven 2.0.6 and implied dependency on sentry 5.0.13

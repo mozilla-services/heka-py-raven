@@ -15,24 +15,24 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.4'
+version = '0.5'
 
-setup(name='metlog-raven',
+setup(name='heka-raven',
       version=version,
-      description="A Metlog plugin to send exceptions to Sentry",
+      description="A heka-py plugin to send exceptions to Sentry",
       classifiers=[
           'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
           ],
       keywords='',
       author='Victor Ng',
       author_email='vng@mozilla.com',
-      url='http://github.com/mozilla-services/metlog-raven',
+      url='http://github.com/mozilla-services/heka-raven',
       license='MPLv2.0',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'metlog-py>=0.9.4',
+          'heka-py>=0.10.1',
           'raven==2.0.6'
       ],
       entry_points={

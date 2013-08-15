@@ -10,18 +10,18 @@ from raven import Client
 
 import sys
 
-from metlog.decorators.base import MetlogDecorator
-from metlog.client import SEVERITY
+from heka.decorators.base import HekaDecorator
+from heka.client import SEVERITY
 import time
 
-METLOG_PLUGIN_NAME = 'raven'
+HEKA_PLUGIN_NAME = 'raven'
 
 class InvalidArgumentError(RuntimeError): pass
 
 class RavenClient(Client):
     """
     Customized raven client that does not actually send data to a
-    server, but encodes the data into something metlog can use
+    server, but encodes the data into something heka can use
     """
     def capture(self, event_type, data=None, date=None, time_spent=None,
                 extra=None, stack=None, **kwargs):
@@ -89,23 +89,23 @@ class RavenClient(Client):
         return message
 
 
-class capture_stack(MetlogDecorator):
+class capture_stack(HekaDecorator):
     """
     This decorator provides the ability to catch exceptions, log
-    stacktrace data to the metlog backend. After logging, the
+    stacktrace data to the heka backend. After logging, the
     exception will be re-raised.  It is *still* the responsibility of
     callers to handle exceptions properly.
 
     :param severity: The default severity of the error.  Default is 3 as
-      defined by `metlog.client:SEVERITY.ERROR`
-      <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py> # NOQA
+      defined by `heka.client:SEVERITY.ERROR`
+      <https://github.com/mozilla-services/heka-py/blob/master/heka/client.py> # NOQA
 
     The logger name will automatically be set the the fully qualified
     name of the decorated function.
 
     """
 
-    def metlog_call(self, *args, **kwargs):
+    def heka_call(self, *args, **kwargs):
         if self.kwargs is None:
             self.kwargs = {}
         severity = self.kwargs.pop('severity', SEVERITY.ERROR)
@@ -114,21 +114,21 @@ class capture_stack(MetlogDecorator):
             result = self._fn(*args, **kwargs)
             return result
         except:
-            plugin_fn = getattr(self.client, METLOG_PLUGIN_NAME)
+            plugin_fn = getattr(self.client, HEKA_PLUGIN_NAME)
             plugin_fn(severity=severity)
             raise
 
 
 def config_plugin(config):
     """
-    Configure the metlog plugin prior to binding it to the
-    metlog client.
+    Configure the heka plugin prior to binding it to the
+    heka client.
 
-    :param logger: The name that metlog will use when logging messages. By
+    :param logger: The name that heka will use when logging messages. By
                     default this string is empty
     :param severity: The default severity of the error.  Default is 3 as
-      defined by `metlog.client:SEVERITY.ERROR`
-      <https://github.com/mozilla-services/metlog-py/blob/master/metlog/client.py> # NOQA
+      defined by `heka.client:SEVERITY.ERROR`
+      <https://github.com/mozilla-services/heka-py/blob/master/heka/client.py> # NOQA
 
     """
 
@@ -149,7 +149,7 @@ def config_plugin(config):
         # dsn from now on.
         rc = RavenClient(project=sentry_project_id)
 
-    def metlog_raven(self,
+    def heka_raven(self,
             msg='',
             exc_info=True,
             logger=default_logger,
@@ -188,11 +188,11 @@ def config_plugin(config):
                   'dsn': sentry_dsn,
                  }
         fields.update(kwargs)
-        self.metlog(type='sentry',
+        self.heka(type='sentry',
                 logger=logger,
                 payload=payload,
                 fields=fields,
                 severity=severity)
 
-    metlog_raven.metlog_name = METLOG_PLUGIN_NAME
-    return metlog_raven
+    heka_raven.heka_name = HEKA_PLUGIN_NAME
+    return heka_raven
