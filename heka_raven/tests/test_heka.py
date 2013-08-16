@@ -49,7 +49,7 @@ class TestCannedDecorators(object):
         try:
             exception_call1(5, 5)
         except:
-            msgs = [json.loads(m) for m in self.client.sender.msgs]
+            msgs = [json.loads(m[8:]) for m in self.client.sender.stream.msgs]
 
         # There should be 1 exception
         eq_(len(msgs), 1)
@@ -148,8 +148,6 @@ class TestDSNConfiguration(object):
     client_name = '_default_client'
 
     def setUp(self):
-        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
-
         client = CLIENT_HOLDER.get_client(self.client_name)
 
         self.dsn = "udp://username:password@somehost.com:9000/2"
@@ -163,7 +161,6 @@ class TestDSNConfiguration(object):
 
     def tearDown(self):
         del CLIENT_HOLDER._clients[self.client_name]
-        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
     def test_raven_method(self):
         def exception_call2(a, b, c):
@@ -188,10 +185,15 @@ class TestDSNConfiguration(object):
         eq_(sentry_fields['extra']['msg'], 'some message')
 
         eq_(msg['logger'], '')
-        eq_(msg['fields']['msg'], 'some message')
         eq_(msg['type'], 'sentry')
         eq_(msg['severity'], SEVERITY.ERROR)
-        eq_(msg['fields']['dsn'], self.dsn)
+
+        f = [f for f in msg['fields'] if f['name'] == 'msg'][0]
+        eq_(f['value_string'], ['some message'])
+
+        f = [f for f in msg['fields'] if f['name'] == 'dsn'][0]
+        eq_(f['value_string'], [self.dsn])
+
 
     def test_explicit_payloads(self):
         expected_payload="some payload data"
