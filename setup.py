@@ -15,9 +15,9 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.5'
+version = '0.6'
 
-setup(name='heka-raven',
+setup(name='heka-py-raven',
       version=version,
       description="A heka-py plugin to send exceptions to Sentry",
       classifiers=[

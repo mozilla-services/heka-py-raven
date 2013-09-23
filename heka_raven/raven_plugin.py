@@ -183,10 +183,8 @@ def config_plugin(config):
         else:
             payload = kwargs['payload']
 
-        fields = {'epoch_timestamp': time.time(),
-                  'msg': msg,
-                  'dsn': sentry_dsn,
-                 }
+        fields = {'msg': msg,
+                  'dsn': sentry_dsn}
         fields.update(kwargs)
         self.heka(type='sentry',
                 logger=logger,

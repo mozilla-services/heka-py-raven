@@ -1,7 +1,6 @@
-0.5
-==================
-- First official release compatible with heka-py
-
+0.6 - 2013-09-23
+================
+- First release compatible with heka-py 0.30 and hekad 0.4
 
 0.3
 ==================
