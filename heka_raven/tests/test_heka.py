@@ -7,6 +7,7 @@
 
 from heka.client import SEVERITY
 from heka.holder import CLIENT_HOLDER
+from heka.tests.helpers import decode_message
 from heka_raven.raven_plugin import RavenClient
 from heka_raven.raven_plugin import InvalidArgumentError
 from heka_raven.raven_plugin import capture_stack
@@ -21,11 +22,9 @@ class TestCannedDecorators(object):
     client_name = '_default_client'
 
     def setUp(self):
-        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
-
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
+        client_config = {'stream_class': 'heka.streams.DebugCaptureStream',
                 'plugins': {'plugin_section_name':
                     ('heka_raven.raven_plugin:config_plugin',
                         {'dsn': 'udp://someuser:somepass@somehost.com:5000/2'})}
@@ -35,7 +34,6 @@ class TestCannedDecorators(object):
 
     def tearDown(self):
         del CLIENT_HOLDER._clients[self.client_name]
-        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
     def test_capture_stack(self):
 
@@ -52,7 +50,9 @@ class TestCannedDecorators(object):
         try:
             exception_call1(5, 5)
         except:
-            msgs = [json.loads(m) for m in self.client.sender.msgs]
+            for mdata  in self.client.stream.msgs:
+                h, msg = decode_message(mdata)
+                msgs.append(msg)
 
         # There should be 1 exception
         eq_(len(msgs), 1)
@@ -61,10 +61,10 @@ class TestCannedDecorators(object):
         event = msgs[0]
 
         rc = RavenClient()
-        sentry_fields = rc.decode(event['payload'])
+        sentry_fields = rc.decode(event.payload)
 
         eq_(sentry_fields['culprit'],
-            'test_heka in exception_call2')
+            'test_heka.exception_call2')
 
         frames = sentry_fields['sentry.interfaces.Stacktrace']['frames']
         culprit_frame = [f for f in frames \
@@ -74,7 +74,7 @@ class TestCannedDecorators(object):
             culprit_frame['vars']['b'],
             5)
 
-        eq_(event['severity'], SEVERITY.ERROR)
+        eq_(event.severity, SEVERITY.ERROR)
 
     def test_capture_stack_passing(self):
 
@@ -91,11 +91,9 @@ class TestPluginMethod(object):
 
     def setUp(self):
         self.dsn = "udp://username:password@somehost.com:9000/2"
-        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
-
         client = CLIENT_HOLDER.get_client(self.client_name)
 
-        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
+        client_config = {'stream_class': 'heka.streams.DebugCaptureStream',
                 'plugins': {'plugin_section_name':
                     ['heka_raven.raven_plugin:config_plugin',
                         {'dsn': self.dsn}]
@@ -105,7 +103,6 @@ class TestPluginMethod(object):
 
     def tearDown(self):
         del CLIENT_HOLDER._clients[self.client_name]
-        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
     def test_raven_method(self):
         def exception_call2(a, b, c):
@@ -119,26 +116,30 @@ class TestPluginMethod(object):
         except:
             self.client.raven('some message')
 
-        eq_(1, len(self.client.sender.msgs))
+        eq_(1, len(self.client.stream.msgs))
 
-        msg = json.loads(self.client.sender.msgs[0])
+        h, msg = decode_message(self.client.stream.msgs[0])
 
         rc = RavenClient()
-        sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
+        sentry_fields = rc.decode(msg.payload)
+        eq_(sentry_fields['culprit'], 'test_heka.exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 
-        eq_(msg['logger'], '')
-        eq_(msg['fields']['msg'], 'some message')
-        eq_(msg['type'], 'sentry')
-        eq_(msg['severity'], SEVERITY.ERROR)
-        eq_(msg['fields']['dsn'], self.dsn)
+        eq_(msg.logger, '')
+        eq_(msg.type, 'sentry')
+        eq_(msg.severity, SEVERITY.ERROR)
+
+        f = [f for f in msg.fields if f.name == 'msg'][0]
+        eq_(f.value_string, ['some message'])
+
+        f = [f for f in msg.fields if f.name == 'dsn'][0]
+        eq_(f.value_string, [self.dsn])
 
 
 def test_invalid_config():
     dsn = "udp://username:password@somehost.com:9000/2"
-    client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
+    client_config = {'stream_class': 'heka.streams.DebugCaptureStream',
             'plugins': {'heka_raven':
                        ['heka_raven.raven_plugin:config_plugin',
                        {'sentry_dsn': dsn}]
@@ -151,12 +152,10 @@ class TestDSNConfiguration(object):
     client_name = '_default_client'
 
     def setUp(self):
-        self.orig_default_client = CLIENT_HOLDER.global_config.get('default')
-
         client = CLIENT_HOLDER.get_client(self.client_name)
 
         self.dsn = "udp://username:password@somehost.com:9000/2"
-        client_config = {'sender_class': 'heka.senders.DebugCaptureSender',
+        client_config = {'stream_class': 'heka.streams.DebugCaptureStream',
                 'plugins': {'plugin_section_name':
                     ['heka_raven.raven_plugin:config_plugin',
                         {'dsn': self.dsn}]
@@ -166,7 +165,6 @@ class TestDSNConfiguration(object):
 
     def tearDown(self):
         del CLIENT_HOLDER._clients[self.client_name]
-        CLIENT_HOLDER.set_default_client_name(self.orig_default_client)
 
     def test_raven_method(self):
         def exception_call2(a, b, c):
@@ -180,30 +178,34 @@ class TestDSNConfiguration(object):
         except:
             self.client.raven('some message')
 
-        eq_(1, len(self.client.sender.msgs))
+        eq_(1, len(self.client.stream.msgs))
 
-        msg = json.loads(self.client.sender.msgs[0])
+        h, msg = decode_message(self.client.stream.msgs[0])
 
         rc = RavenClient()
-        sentry_fields = rc.decode(msg['payload'])
-        eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
+        sentry_fields = rc.decode(msg.payload)
+        eq_(sentry_fields['culprit'], 'test_heka.exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
         eq_(sentry_fields['extra']['msg'], 'some message')
 
-        eq_(msg['logger'], '')
-        eq_(msg['fields']['msg'], 'some message')
-        eq_(msg['type'], 'sentry')
-        eq_(msg['severity'], SEVERITY.ERROR)
-        eq_(msg['fields']['dsn'], self.dsn)
+        eq_(msg.logger, '')
+        eq_(msg.type, 'sentry')
+        eq_(msg.severity, SEVERITY.ERROR)
+
+        f = [f for f in msg.fields if f.name == 'msg'][0]
+        eq_(f.value_string, ['some message'])
+
+        f = [f for f in msg.fields if f.name == 'dsn'][0]
+        eq_(f.value_string, [self.dsn])
+
 
     def test_explicit_payloads(self):
         expected_payload="some payload data"
         self.client.raven(payload=expected_payload)
-        eq_(1, len(self.client.sender.msgs))
-        msg = json.loads(self.client.sender.msgs[0])
-        eq_(msg['payload'], expected_payload)
-        eq_(msg['fields'].has_key('payload'), False)
+        eq_(1, len(self.client.stream.msgs))
+        h, msg = decode_message(self.client.stream.msgs[0])
+        eq_(msg.payload, expected_payload)
 
     def test_no_sentry_message(self):
         self.client.raven()
-        eq_(0, len(self.client.sender.msgs))
+        eq_(0, len(self.client.stream.msgs))

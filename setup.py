@@ -15,7 +15,7 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.5'
+version = '0.6'
 
 setup(name='heka-py-raven',
       version=version,
@@ -32,7 +32,7 @@ setup(name='heka-py-raven',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'heka-py>=0.10',
+          'heka-py>=0.30.1',
           'raven==3.1.16'
       ],
       )
