@@ -70,8 +70,8 @@ class TestCannedDecorators(object):
         culprit_frame = [f for f in frames \
                             if f['function'] == 'exception_call2'][0]
         # Check for the variables that cause the divide by zero
-        eq_(culprit_frame['vars']['a'],
-            culprit_frame['vars']['b'],
+        eq_(culprit_frame['vars']["'a'"],
+            culprit_frame['vars']["'b'"],
             5)
 
         eq_(event.severity, SEVERITY.ERROR)
@@ -124,7 +124,7 @@ class TestPluginMethod(object):
         sentry_fields = rc.decode(msg.payload)
         eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
-        eq_(sentry_fields['extra']['msg'], 'some message')
+        eq_(sentry_fields['extra']['msg'], "'some message'")
 
         eq_(msg.logger, '')
         eq_(msg.type, 'sentry')
@@ -186,7 +186,7 @@ class TestDSNConfiguration(object):
         sentry_fields = rc.decode(msg.payload)
         eq_(sentry_fields['culprit'], 'test_heka in exception_call2')
         eq_(len(sentry_fields['sentry.interfaces.Stacktrace']['frames']), 3)
-        eq_(sentry_fields['extra']['msg'], 'some message')
+        eq_(sentry_fields['extra']['msg'], "'some message'")
 
         eq_(msg.logger, '')
         eq_(msg.type, 'sentry')

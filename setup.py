@@ -15,7 +15,16 @@
 # ***** END LICENSE BLOCK *****
 from setuptools import setup, find_packages
 
-version = '0.6'
+version = '0.7'
+
+install_requires = ['heka-py>=0.30.3', ]
+
+# Version 5.1-5.4 of Sentry
+protocol_v3 = ['raven<3.5']
+
+# We don't support Sentry 6 set
+# See bug
+#protocol_v4 = ['raven>=3.5']
 
 setup(name='heka-py-raven',
       version=version,
@@ -31,8 +40,9 @@ setup(name='heka-py-raven',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-          'heka-py>=0.30.1',
-          'raven==3.1.16'
-      ],
+      extras_require={
+          'protocol_v3': install_requires + protocol_v3,
+          #'protocol_v4': install_requires + protocol_v4,
+          },
+      install_requires=install_requires,
       )

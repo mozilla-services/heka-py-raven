@@ -1,3 +1,8 @@
+0.7 - 2013-11-29
+================
+- Installation now requires a sentry protocol version to install the
+  raven dependency.
+
 0.6 - 2013-09-23
 ================
 - First release compatible with heka-py 0.30 and hekad 0.4
