@@ -17,9 +17,10 @@ being used for a router and what endpoints are in use / planning to be used)
 can be found on the `Read The Docs page 
 <https://heka-docs.readthedocs.org>`_.
 
-This version of heka-py-raven must be used with :
+This version of heka-py-raven is compatible with version 3 of the
+Sentry protocol.  This should make it compatible with Sentry 5.1->5.4
+and Raven clients upto, but not including Raven 3.5.
 
-  * Raven client version 3.1.16
-  * Sentry server 5.4.2
+To install heka-py-raven use::
 
-Other versions may work, but they have not been tested.
+    pip install heka-py-rave[protocol_v3]

@@ -1,6 +1,6 @@
 %define name heka-py-raven
 %define pythonname HekaPyRaven
-%define version 0.5
+%define version 0.7
 %define unmangled_version %{version}
 %define release 0
 
