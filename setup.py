@@ -23,8 +23,8 @@ install_requires = ['heka-py>=0.30.3', ]
 protocol_v3 = ['raven<3.5']
 
 # We don't support Sentry 6 set
-# See bug
-#protocol_v4 = ['raven>=3.5']
+# See bug https://github.com/mozilla-services/heka-py-raven/issues/2
+# protocol_v4 = ['raven>=3.5']
 
 setup(name='heka-py-raven',
       version=version,
