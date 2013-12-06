@@ -23,4 +23,4 @@ and Raven clients upto, but not including Raven 3.5.
 
 To install heka-py-raven use::
 
-    pip install heka-py-rave[protocol_v3]
+    pip install heka-py-raven[protocol_v3]
